@@ -1,33 +1,23 @@
-const sqlite = require('sqlite3')
-const { open } = require('sqlite')
-async function main() {
+const express = require('express')
+const app = express()
+app.use(express.json())
+const dbConnection = require('./index')
+let db
+dbConnection().then(retorno => {
+    db = retorno
+})
+
+
+app.post('/usuarios', async (req, res) => {
+    const {nome, email} = req.body
     try{
-    const db = await open({
-   filename: './banco.db',
-     driver: sqlite.Database
-    })
-    await db.exec(`CREATE TABLE usuários (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        email TEXT NOT NULL UNIQUE
-    )`)
+        const result = await db.run(`INSERT INTO usuarios (nome, email) VALUES (?, ?)`, [nome, email])
+        res.status(201).json(({msg: "Criado com sucesso"}))
+    }catch(err){
+        res.status(500).json({msg: `${err.message}`})
+    }
+})
 
-    const usuários = await db.all(`SELECT * FROM usuários`)
-
-    await db.run(`INSERT INT usuários (vicenzo, vicenzo_librelotto@estudante.sesisenai.org.br))`)
-
-
-    
-    await db.close()
-} catch (err) {
-    console.log(err)
-}
-}
-
-main()
-
-//criar uma conexão com o banco
-//executar um script simples de criação de tabela
-//executar um script simples adicionando um usuário 
-//executar um script simples de leitura na tabela
-//encerrar a conexão
+app.listen(8000, (req, res) => {
+    console.log("servidor esta online chefe")
+})
